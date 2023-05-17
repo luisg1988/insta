@@ -6,7 +6,6 @@ import { loginUserDto } from './dto/loginUser.dto';
 import { utility } from 'src/utility/utility';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AuthGuardAdmin } from 'src/auth/auth.guardAdmin';
-import { AuthService } from 'src/auth/auth.service';
 
 
 
@@ -31,7 +30,7 @@ export class UsersController {
         return await this.userService.checkUtp(user);
     }
 
-    @UseGuards(AuthGuardAdmin) 
+   // @UseGuards(AuthGuardAdmin) 
     @Get()
     getUsers() {
         return this.userService.getUsers();
@@ -44,8 +43,11 @@ export class UsersController {
     }
 
     // edit /users/1 + {body}
-    @UseGuards(AuthGuard) 
+    
     @Patch(':id')
+    @UseGuards(AuthGuard)
+     
+    //updateUser(@User() user:jwt, ParseIntPipe) id: number, @Body() user: editUserDto) {
     updateUser(@Param('id', ParseIntPipe) id: number, @Body() user: editUserDto) {
         this.userService.editUser(id, user);
         return this.userService.getUser(id);
