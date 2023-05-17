@@ -70,7 +70,7 @@ export class UsersService {
 
    async getUsers() {
       try {
-         return await this._repository.find();
+         return await this._repository.find({relations :['post']});
       } catch (error) {
          utility.log(error);
       }
@@ -113,12 +113,8 @@ export class UsersService {
                   rol: found.rol
                } ;
                // token sign w public info     
-               const token = {access_token: await this.jwt.signAsync(payload),}      
-                      
-
-              return token;
-
-       
+               const token = {access_token: await this.jwt.signAsync(payload),}                           
+              return token;       
             }
             else {
                return new HttpException('error', HttpStatus.NON_AUTHORITATIVE_INFORMATION);

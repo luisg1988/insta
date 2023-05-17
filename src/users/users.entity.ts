@@ -1,6 +1,7 @@
-import {Entity,Column,PrimaryGeneratedColumn} from 'typeorm'
+import {Entity,Column,PrimaryGeneratedColumn, OneToMany} from 'typeorm'
 import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, Length, MinLength, minLength } from 'class-validator'
 import { Exclude } from 'class-transformer'
+import { posts } from 'src/posts/posts.entity'
 
 
 export enum roles {
@@ -50,5 +51,10 @@ export class users {
       })
    
     rol: roles
+
+    // un usuario tiene muchos post arreglo de posts 
+    @OneToMany(() => posts, (posts) => posts.user)
+    posts: posts
+
 
 }
