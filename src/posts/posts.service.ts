@@ -8,6 +8,7 @@ import { utility } from 'src/utility/utility';
 import { images } from 'src/images/images.entity';
 import { users } from 'src/users/users.entity';
 import { editImage, image, imagesIdList, newImages, newImagesPlus } from 'src/images/dto/newImages.dto';
+import { NOTFOUND } from 'dns';
 
 @Injectable()
 export class PostsService {
@@ -17,48 +18,77 @@ export class PostsService {
       @InjectRepository(images) private _imagesRepository: Repository<images>
       , private jwt: JwtService
    ) { }
-   async hide(post: postToHide) {
+   async hide(post: postToHide, user: users) {
+      try {
+         const found =
+            await this._postRepository.find(
+               {
 
-      const _postToEdit = new postToEdit;
-      _postToEdit.id = post.id;
-      _postToEdit.active = false;
-
-      return await this._postRepository.save(_postToEdit);
+                  where: {
+                     userId: user.id,
+                     id: post.id,
+                  },
+               },
+            );
+         if (found.length > 0) {
+            const _postToEdit = new postToEdit;
+            _postToEdit.id = post.id;
+            _postToEdit.active = false;
+            return await this._postRepository.save(_postToEdit);
+         }
+         else
+            return new HttpException('error',HttpStatus.NOT_FOUND);
+      } catch (error) {
+         utility.log(error);
+      }
    }
 
-   async updateImages(_images: imagesIdList) {
-      //todo: ver si se puede hacer un IN y un where el post id sea
-      /*
-      //TODO: Intento failll
-         const postId= _images.postId;
-         const imagesIds =  _images.id;
-         this._imagesRepository.createQueryBuilder()
-         .update(images)
-         .set({ active: _images.active })
-         .where("id IN(:...ids)", { ids: imagesIds })
-         //.where({id: In(_images.id),})
-         .andWhere('postId = :postId', { postId })
-         .execute;
-         */
+   async updateImages(_images: imagesIdList, user: users) {
+
 
       await Promise.all(
          _images.id.map(async obj => {
             const id = parseInt(obj.toString());
-            const eImage = new editImage();
-            eImage.active = _images.active;
-            await this._imagesRepository.update({ id }, eImage);
-            //console.log(obj.toString());
+            const found =
+               await this._postRepository.find(
+                  {
+                     relations: { images: true, user: true },
+                     where: {
+                        id: _images.postId,
+                        images: { id },
+                        user: { id: user.id }
+                     },
+                  },
+               );
+            if (found.length > 0) {
+               const eImage = new editImage();
+               eImage.active = _images.active;
+               await this._imagesRepository.update({ id }, eImage);
+            }
          })
       );
-      return await this._postRepository.find({ where: { id: _images.postId }, relations: ['images', 'user'], });
+      return await this._postRepository.find({ where: { id: _images.postId }, relations: { images: true, user: true }, });
 
    }
 
-   async updateImage(image: image) {
+   async updateImage(image: image, user: users) {
+
+      const found =
+         await this._postRepository.find(
+            {
+               relations: { images: true, user: true },
+               where: {
+                  images: { id: image.id },
+                  user: { id: user.id }
+               },
+            },
+         );
+      if (found.length === 0) {
+         throw new HttpException('error', HttpStatus.NOT_FOUND);
+      }
       const id = image.id
       await this._imagesRepository.update({ id }, image);
-      //console.log(obj.toString());       
-      return await this._imagesRepository.find({ where: { id }, relations: ['post'], });
+      return await this._imagesRepository.find({ where: { id }, relations: { post: true, } },);
    }
 
 
@@ -85,44 +115,21 @@ export class PostsService {
       }
    }
 
-   async getPosts() {
-      try {        
+   async getPosts( user: users) {
+      try {
          return await this._postRepository.find(
-            { relations: { images: true, user: true }, 
-            where: { 
-               active: true, 
-               images: { active: true }, 
-               user: { active: true } 
+            {
+               relations: { images: true, user: true },
+               where: {
+                  active: true,
+                  images: { active: true },
+                  user: { active: true, id: user.id}
+               },
             },
-          },
          );
-
-          /*
-         return await this._postRepository.find(
-            { where: { active: false }, relations: ['user', 'images'] }
-         );
-           old code
-         */
-
-
       } catch (error) {
          utility.log(error);
       }
-   }
-//code to get whit query
-   async getPostsQuery() {
-      const active:boolean = true;
-      return await this._imagesRepository.createQueryBuilder('i')
-         .leftJoinAndSelect('posts', 'p', 'p.id = i.postId')
-         .leftJoinAndSelect('users', 'u', 'u.id = p.userId')
-         .where('i.active = :active', { active })
-         .andWhere('p.active = :active', { active })
-         .andWhere('u.active = :active', { active })
-         //.getQuery();
-         .execute();
-      //console.log(A);
-
-
    }
 
 }
