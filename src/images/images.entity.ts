@@ -1,3 +1,4 @@
+import { IsBoolean, IsNumber, IsString } from 'class-validator'
 import { posts } from 'src/posts/posts.entity'
 import {Entity,Column,PrimaryGeneratedColumn, ManyToOne} from 'typeorm'
 
@@ -8,9 +9,16 @@ export class images {
     id: number
 
     @Column()
+    @IsString()
     url: string
 
+    @Column({default:true})
+    @IsBoolean()
+    active: boolean
+    
+
     @Column()
+    @IsNumber()
     postId:number
 
     @ManyToOne(() => posts, (posts) => posts.images)

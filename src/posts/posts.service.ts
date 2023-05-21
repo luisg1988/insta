@@ -3,11 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { posts } from './posts.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { newPost } from './dto/newPost.dto';
+import { newPost, postToEdit, postToHide } from './dto/newPost.dto';
 import { utility } from 'src/utility/utility';
 import { images } from 'src/images/images.entity';
 import { users } from 'src/users/users.entity';
-import { newImages, newImagesPlus } from 'src/images/dto/newImages.dto';
+import { editImage, image, imagesIdList, newImages, newImagesPlus } from 'src/images/dto/newImages.dto';
 
 @Injectable()
 export class PostsService {
@@ -17,6 +17,50 @@ export class PostsService {
       @InjectRepository(images) private _imagesRepository: Repository<images>
       , private jwt: JwtService
    ) { }
+   async hide(post: postToHide) {
+
+      const _postToEdit = new postToEdit;
+      _postToEdit.id = post.id;
+      _postToEdit.active = false;
+
+      return await this._postRepository.save(_postToEdit);
+   }
+
+   async updateImages(_images: imagesIdList) {
+      //todo: ver si se puede hacer un IN y un where el post id sea
+      /*
+      //TODO: Intento failll
+         const postId= _images.postId;
+         const imagesIds =  _images.id;
+         this._imagesRepository.createQueryBuilder()
+         .update(images)
+         .set({ active: _images.active })
+         .where("id IN(:...ids)", { ids: imagesIds })
+         //.where({id: In(_images.id),})
+         .andWhere('postId = :postId', { postId })
+         .execute;
+         */
+
+      await Promise.all(
+         _images.id.map(async obj => {
+            const id = parseInt(obj.toString());
+            const eImage = new editImage();
+            eImage.active = _images.active;
+            await this._imagesRepository.update({ id }, eImage);
+            //console.log(obj.toString());
+         })
+      );
+      return await this._postRepository.find({ where: { id: _images.postId }, relations: ['images', 'user'], });
+
+   }
+
+   async updateImage(image: image) {
+      const id = image.id
+      await this._imagesRepository.update({ id }, image);
+      //console.log(obj.toString());       
+      return await this._imagesRepository.find({ where: { id }, relations: ['post'], });
+   }
+
 
    async newPost(newPost: newPost) {
       try {
@@ -40,18 +84,45 @@ export class PostsService {
          utility.log(error);
       }
    }
-   getPost(id: number) {
-      throw new Error('Method not implemented.');
-   }
 
    async getPosts() {
-      try {
+      try {        
          return await this._postRepository.find(
-            { relations: ['user', 'images'] }
+            { relations: { images: true, user: true }, 
+            where: { 
+               active: true, 
+               images: { active: true }, 
+               user: { active: true } 
+            },
+          },
          );
+
+          /*
+         return await this._postRepository.find(
+            { where: { active: false }, relations: ['user', 'images'] }
+         );
+           old code
+         */
+
+
       } catch (error) {
          utility.log(error);
       }
+   }
+//code to get whit query
+   async getPostsQuery() {
+      const active:boolean = true;
+      return await this._imagesRepository.createQueryBuilder('i')
+         .leftJoinAndSelect('posts', 'p', 'p.id = i.postId')
+         .leftJoinAndSelect('users', 'u', 'u.id = p.userId')
+         .where('i.active = :active', { active })
+         .andWhere('p.active = :active', { active })
+         .andWhere('u.active = :active', { active })
+         //.getQuery();
+         .execute();
+      //console.log(A);
+
+
    }
 
 }

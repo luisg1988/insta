@@ -17,5 +17,18 @@ export class newPost {
     @ArrayMaxSize(10)
     @Type(() => newImages)
     images: newImages[]
+}
 
+
+export class postToHide {    
+    @IsNumber()
+    id: number    
+}
+
+export class postToEdit {    
+    @IsNumber()
+    id: number    
+
+    @IsBoolean()
+    active: boolean
 }

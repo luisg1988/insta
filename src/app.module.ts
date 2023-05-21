@@ -6,8 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsModule } from './posts/posts.module';
 import { ImagesModule } from './images/images.module';
 import { AuthModule } from './auth/auth.module';
-import { jwtConstants } from './auth/constants';
-import { JwtModule } from '@nestjs/jwt';
+
 
 @Module({
 
@@ -23,15 +22,11 @@ import { JwtModule } from '@nestjs/jwt';
       synchronize : true
 
     }),
-  UsersModule,
-  JwtModule.register({
-    global: true,
-    secret: jwtConstants.secret,
-    signOptions: { expiresIn: '1h' },
-  }),  
+  UsersModule,  
   PostsModule,
   ImagesModule,
-  AuthModule],
+  AuthModule,
+],
   controllers: [AppController],
   providers: [AppService],
 })

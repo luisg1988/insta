@@ -8,6 +8,10 @@ import { loginUserDto } from './dto/loginUser.dto';
 import { utility } from 'src/utility/utility'
 import { JwtService } from '@nestjs/jwt';
 import { deleteUserDto } from './dto/deleteUser.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { posts } from 'src/posts/posts.entity';
+import { images } from 'src/images/images.entity';
+
 
 
 @Injectable()
@@ -16,7 +20,8 @@ export class UsersService {
 
    constructor(
       @InjectRepository(users) private _repository: Repository<users>
-      , private jwt:JwtService
+      , private jwt:JwtService,
+      private authService: AuthService,
       ) { }
 
    async resetPassword(user: resetUserDto) {
@@ -52,7 +57,6 @@ export class UsersService {
       }
    }
 
-
    async newUser(user: newUserDto) {
       try {
          const found = await this._repository.findOneBy({ mail: user.mail });
@@ -70,7 +74,7 @@ export class UsersService {
 
    async getUsers() {
       try {
-         return await this._repository.find({relations :['post']});
+         return await this._repository.find({ relations: { posts: true, }});
       } catch (error) {
          utility.log(error);
       }
@@ -87,8 +91,7 @@ export class UsersService {
          utility.log(error);
       }
    }
-
-   
+ 
    async editUser(id: number, _editUser: editUserDto) {
       try {
          const affected = await this._repository.update({ id }, _editUser);
@@ -101,7 +104,14 @@ export class UsersService {
       }
    }
 
+   async getUserByMail(mail:string) {
+      const found = await this._repository.findOneBy({ mail });
+      return (found) 
+   }
+
    async login(user: loginUserDto) {
+      return await this.authService.signIn(user);
+/*
       try {
          const found = await this._repository.findOneBy({ mail: user.mail });
          if (found) {
@@ -123,7 +133,7 @@ export class UsersService {
          return new HttpException('error', HttpStatus.NOT_FOUND);
       } catch (error) {
          utility.log(error);
-      }
+      }*/
    }
    async delete(id: number) {
       try {
@@ -138,19 +148,6 @@ export class UsersService {
          utility.log(error);
       }
   }
-/*
-  async deleteUser(id: number) {
-   try {
-      const affected = await this._repository.delete({ id });
-      if (affected.affected === 0) {
-         return new HttpException('error', HttpStatus.NOT_FOUND);
-      }
-      return affected;
-   } catch (error) {
-      utility.log(error);
-   }
-}
-*/
 
 }
 
