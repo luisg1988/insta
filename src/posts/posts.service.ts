@@ -52,11 +52,11 @@ export class PostsService {
             const found =
                await this._postRepository.find(
                   {
-                     relations: { images: true, user: true },
+                     relations: { images: true, users: true },
                      where: {
                         id: _images.postId,
                         images: { id },
-                        user: { id: user.id }
+                        users: { id: user.id }
                      },
                   },
                );
@@ -67,7 +67,7 @@ export class PostsService {
             }
          })
       );
-      return await this._postRepository.find({ where: { id: _images.postId }, relations: { images: true, user: true }, });
+      return await this._postRepository.find({ where: { id: _images.postId }, relations: { images: true, users: true }, });
 
    }
 
@@ -76,10 +76,10 @@ export class PostsService {
       const found =
          await this._postRepository.find(
             {
-               relations: { images: true, user: true },
+               relations: { images: true, users: true },
                where: {
                   images: { id: image.id },
-                  user: { id: user.id }
+                  users: { id: user.id }
                },
             },
          );
@@ -119,11 +119,11 @@ export class PostsService {
       try {
          return await this._postRepository.find(
             {
-               relations: { images: true, user: true },
+               relations: { images: true, users: true },
                where: {
                   active: true,
                   images: { active: true },
-                  user: { active: true, id: user.id}
+                  users: { active: true, id: user.id}
                },
             },
          );

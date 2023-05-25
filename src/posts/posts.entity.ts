@@ -27,7 +27,7 @@ export class posts {
     // mucho a uno 
     // muchos posts () son de usuarios en posts de su uno a mucho
    @ManyToOne(() => users, (users) => users.posts)
-  user: users
+  users: users
 
 
   @OneToMany(() => images, (images) => images.post)

@@ -84,7 +84,7 @@ export class UsersService {
       try {
          const found = await this._repository.findOneBy({ id });
          if (!found) {
-            return new HttpException('error', HttpStatus.NOT_FOUND);
+            throw new HttpException('error', HttpStatus.NOT_FOUND);
          }
          return found;
       } catch (error) {
@@ -111,29 +111,6 @@ export class UsersService {
 
    async login(user: loginUserDto) {
       return await this.authService.signIn(user);
-/*
-      try {
-         const found = await this._repository.findOneBy({ mail: user.mail });
-         if (found) {
-            if (await utility.compare(user.pass, found.pass)) {              
-               // public info
-               const payload = {
-                  id: found.id,
-                  name: found.name,
-                  rol: found.rol
-               } ;
-               // token sign w public info     
-               const token = {access_token: await this.jwt.signAsync(payload),}                           
-              return token;       
-            }
-            else {
-               return new HttpException('error', HttpStatus.NON_AUTHORITATIVE_INFORMATION);
-            }
-         }
-         return new HttpException('error', HttpStatus.NOT_FOUND);
-      } catch (error) {
-         utility.log(error);
-      }*/
    }
    async delete(id: number) {
       try {

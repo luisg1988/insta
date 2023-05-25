@@ -53,7 +53,7 @@ export class users {
     rol: roles
 
     // un usuario tiene muchos post arreglo de posts 
-    @OneToMany(() => posts, (posts) => posts.user)
+    @OneToMany(() => posts, (posts) => posts.users)
     posts: posts
 
 

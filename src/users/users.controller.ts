@@ -36,7 +36,7 @@ export class UsersController {
     @UseGuards(AuthGuard)
     // get /users/1
     @Get(':id')
-    getUser(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    getUser(@Param('id', ParseIntPipe) id: number, @Request() req):Promise<users> {
         if (utility.itsMeOrAdmin(id, req.user))        
             return this.userService.getUser(id);      
     }
@@ -53,7 +53,7 @@ export class UsersController {
     }
 
     @Post('logIn')
-    async logIn(@Body() user: loginUserDto) {
+    async logIn(@Body() user: loginUserDto) :Promise<any> {
         return await this.userService.login(user);
     }
 
