@@ -13,23 +13,23 @@ export class UsersController {
 
     constructor(private userService: UsersService) { }
     @Post('signUp')
-    async newUser(@Body() newUser: newUserDto) {
+    async newUser(@Body() newUser: newUserDto) : Promise<users> {
         return await this.userService.newUser(newUser);
     }
 
     @Post('resetPassword')
-    async resetPass(@Body() user: resetUserDto) {
+    async resetPass(@Body() user: resetUserDto) : Promise<users>{
         return await this.userService.resetPassword(user);
     }
 
     @Post('checkUtp')
-    async checkUtp(@Body() user: userUtpDto) {
+    async checkUtp(@Body() user: userUtpDto):Promise<users> {
         return await this.userService.checkUtp(user);
     }
 
     @UseGuards(AuthGuardAdmin)
     @Get()
-    getUsers() {
+    getUsers():Promise<users[]> {
         return this.userService.getUsers();
     }
 
@@ -44,7 +44,7 @@ export class UsersController {
     // edit /users/1 + {body}
     @Patch(':id')
     @UseGuards(AuthGuard)
-    async updateUser(@Param('id', ParseIntPipe) id: number, @Body() user: editUserDto, @Request() req) {
+    async updateUser(@Param('id', ParseIntPipe) id: number, @Body() user: editUserDto, @Request() req):Promise<users> {
         if (utility.itsMeOrAdmin(id, req.user))
         {
             await this.userService.editUser(id, user);
@@ -59,7 +59,7 @@ export class UsersController {
 
     @UseGuards(AuthGuard)
     @Delete(':id')
-    async delete(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    async delete(@Param('id', ParseIntPipe) id: number, @Request() req): Promise<users> {
         if (utility.itsMeOrAdmin(id, req.user))
         {
             await this.userService.delete(id);

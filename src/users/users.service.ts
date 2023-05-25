@@ -24,16 +24,16 @@ export class UsersService {
       private authService: AuthService,
       ) { }
 
-   async resetPassword(user: resetUserDto) {
+   async resetPassword(user: resetUserDto)  {
       try {
          const found = await this._repository.findOneBy({ mail: user.mail });
          if (!found) {
-            return new HttpException('', HttpStatus.NOT_FOUND);
+            throw new HttpException('', HttpStatus.NOT_FOUND);
          }
          found.pass = null;
          found.active = false;
          found.utp = utility.rnd6();
-         utility.log(found.utp);
+         //utility.log(found.utp);
          return await this._repository.save(found);
          //todo: send mail w utp code url    
       } catch (error) {
@@ -46,12 +46,13 @@ export class UsersService {
       try {
          const found = await this._repository.findOneBy({ mail: user.mail, utp: user.utp });
          if (!found) {
-            return new HttpException('error', HttpStatus.NOT_FOUND);
+            throw new HttpException('error', HttpStatus.NOT_FOUND);
          }
          found.pass = await utility.passHash(user.pass);
          found.active = true;
          found.utp = null;
-         return await this._repository.save(found);
+          return await this._repository.save(found);
+          //return found;
       } catch (error) {
          utility.log(error);
       }
@@ -61,7 +62,7 @@ export class UsersService {
       try {
          const found = await this._repository.findOneBy({ mail: user.mail });
          if (found) {
-            return new HttpException('error', HttpStatus.CONFLICT);
+            throw new HttpException('error', HttpStatus.CONFLICT);
          }
          const newUser = this._repository.create(user);
          newUser.pass = await utility.passHash(newUser.pass);

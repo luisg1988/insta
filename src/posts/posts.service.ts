@@ -37,7 +37,7 @@ export class PostsService {
             return await this._postRepository.save(_postToEdit);
          }
          else
-            return new HttpException('error',HttpStatus.NOT_FOUND);
+            throw new HttpException('error', HttpStatus.NOT_FOUND);
       } catch (error) {
          utility.log(error);
       }
@@ -67,28 +67,32 @@ export class PostsService {
             }
          })
       );
-      return await this._postRepository.find({ where: { id: _images.postId }, relations: { images: true, users: true }, });
+      return await this._postRepository.findOne({ where: { id: _images.postId }, relations: { images: true, users: true }, });
 
    }
 
    async updateImage(image: image, user: users) {
+      try {
 
-      const found =
-         await this._postRepository.find(
-            {
-               relations: { images: true, users: true },
-               where: {
-                  images: { id: image.id },
-                  users: { id: user.id }
+         const found =
+            await this._postRepository.find(
+               {
+                  relations: { images: true, users: true },
+                  where: {
+                     images: { id: image.id },
+                     users: { id: user.id }
+                  },
                },
-            },
-         );
-      if (found.length === 0) {
-         throw new HttpException('error', HttpStatus.NOT_FOUND);
-      }
-      const id = image.id
-      await this._imagesRepository.update({ id }, image);
-      return await this._imagesRepository.find({ where: { id }, relations: { post: true, } },);
+            );
+         if (found.length === 0) {
+            throw new HttpException('error', HttpStatus.NOT_FOUND);
+         }
+         const id = image.id
+         await this._imagesRepository.update({ id }, image);
+         return await this._imagesRepository.findOne({ where: { id }, relations: { post: true, } },);
+      } catch (error) {
+         utility.log(error);
+      };
    }
 
 
@@ -96,7 +100,7 @@ export class PostsService {
       try {
          const userFound = this._userRepository.findOneBy({ id: newPost.userId });
          if (!userFound) {
-            return new HttpException('user', HttpStatus.NOT_FOUND);
+            throw new HttpException('user', HttpStatus.NOT_FOUND);
          }
          const post = this._postRepository.create(newPost);
          const postSaved = await this._postRepository.save(post);
@@ -109,13 +113,13 @@ export class PostsService {
                await this._imagesRepository.save(imgToSave);
             })
          );
-         return await this._postRepository.find({ where: { id: postSaved.id }, relations: ['images', 'user'], });
+         return await this._postRepository.findOne({ where: { id: postSaved.id }, relations: ['images', 'user'], });
       } catch (error) {
          utility.log(error);
       }
    }
 
-   async getPosts( user: users) {
+   async getPosts(user: users) {
       try {
          return await this._postRepository.find(
             {
@@ -123,7 +127,7 @@ export class PostsService {
                where: {
                   active: true,
                   images: { active: true },
-                  users: { active: true, id: user.id}
+                  users: { active: true, id: user.id }
                },
             },
          );
